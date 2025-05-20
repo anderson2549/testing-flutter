@@ -1,9 +1,11 @@
-name: Flutter CI
+name: Flutter Validador
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
