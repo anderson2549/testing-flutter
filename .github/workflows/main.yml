@@ -46,4 +46,24 @@ jobs:
 
       - name: Build AppBundle
         run: flutter build appbundle --release
+      - name: Borra los source code assets
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const tag = process.env.GITHUB_REF_NAME
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag
+            })
+            for (const asset of release.assets) {
+              if (asset.name.endsWith('.zip') || asset.name.endsWith('.tar.gz')) {
+                await github.rest.repos.deleteReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  asset_id: asset.id
+                })
+              }
+            }
+
 
