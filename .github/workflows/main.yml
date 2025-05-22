@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,28 +30,37 @@ jobs:
 
       - name: Build APK
         run: flutter build apk --debug
-      - name: Build Abb
+
+      - name: Build AAB
         run: flutter build appbundle --release
-        
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload AppBundle artifact
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-aab
           path: build/app/outputs/bundle/release/app-release.aab
 
-      - name: Build AppBundle
-        run: flutter build appbundle --release
+      - name: Crear release en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+
       - name: Borra los source code assets
         uses: actions/github-script@v6
+        env:
+          TAG_NAME: ${{ github.ref_name }}
         with:
           script: |
-            const tag = process.env.GITHUB_REF_NAME
+            const tag = process.env.TAG_NAME
             const { data: release } = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -63,7 +73,6 @@ jobs:
                   repo: context.repo.repo,
                   asset_id: asset.id
                 })
+                console.log(`Deleted ${asset.name}`)
               }
             }
-
-
